@@ -42,6 +42,29 @@ describe('getCanvasTexture', () =>
         texture.destroy();
     });
 
+    it('should not resize or clear the wrapped canvas for a fractional resolution', () =>
+    {
+        // 100 / 0.76 * 0.76 and 100 / 1.52 * 1.52 are 99.99999999999999 in floating point
+        for (const resolution of [0.76, 1.52])
+        {
+            const canvas = DOMAdapter.get().createCanvas(100, 50);
+            const context = canvas.getContext('2d');
+
+            context.fillStyle = '#f00';
+            context.fillRect(0, 0, 100, 50);
+
+            const source = new CanvasSource({ resource: canvas, resolution });
+
+            expect(canvas.width).toEqual(100);
+            expect(canvas.height).toEqual(50);
+            expect(source.pixelWidth).toEqual(100);
+            expect(source.pixelHeight).toEqual(50);
+            expect(Array.from(context.getImageData(50, 25, 1, 1).data)).toEqual([255, 0, 0, 255]);
+
+            source.destroy();
+        }
+    });
+
     it('should manually set width and height', () =>
     {
         const canvas = DOMAdapter.get().createCanvas(2, 3);
